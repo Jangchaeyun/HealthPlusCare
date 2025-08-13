@@ -6,27 +6,47 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import CustomFormField from "../CustomFormField";
+import SubmitButton from "../SubmitButton";
+import { useState } from "react";
+import { UserFormValidation } from "@/lib/validation";
+import { useRouter } from "next/navigation";
 
 export enum FormFieldType {
   INPUT = "input",
+  TEXTAREA = "textarea",
+  PHONE_INPUT = "phoneinput",
+  CHECKBOX = "checkbox",
+  DATE_PICKER = "datePicker",
+  SELECT = "select",
+  SKELETON = "skeleton",
 }
 
-const formSchema = z.object({
-  username: z.string().min(2, {
-    message: "사용자 이름은 최소 2자 이상이어야 합니다.",
-  }),
-});
-
 const PatientForm = () => {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const form = useForm<z.infer<typeof UserFormValidation>>({
+    resolver: zodResolver(UserFormValidation),
     defaultValues: {
-      username: "",
+      name: "",
+      email: "",
+      phone: "",
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  function onSubmit({
+    name,
+    email,
+    phone,
+  }: z.infer<typeof UserFormValidation>) {
+    setIsLoading(true);
+
+    try {
+      // const userData = { name, email, phone };
+      // const user = await createUser(userData);
+      // if (user) router.push(`/patients/${user.$id}/register`);
+    } catch (error) {
+      console.log(error);
+    }
   }
   return (
     <Form {...form}>
@@ -39,8 +59,33 @@ const PatientForm = () => {
         <CustomFormField
           fieldType={FormFieldType.INPUT}
           control={form.control}
+          name="name"
+          label="이름"
+          placeholder="사용자 이름"
+          iconSrc="/assets/icons/user.svg"
+          iconAlt="user"
         />
-        <Button type="submit">전송</Button>
+
+        <CustomFormField
+          fieldType={FormFieldType.INPUT}
+          control={form.control}
+          name="email"
+          label="이메일"
+          placeholder="healthpluscare@mail.com"
+          iconSrc="/assets/icons/email.svg"
+          iconAlt="email"
+        />
+
+        <CustomFormField
+          fieldType={FormFieldType.PHONE_INPUT}
+          control={form.control}
+          name="phone"
+          label="핸드폰"
+          placeholder="(010) 1234-5678"
+          iconSrc="/assets/icons/email.svg"
+          iconAlt="email"
+        />
+        <SubmitButton isLoading={isLoading}>시작하기</SubmitButton>
       </form>
     </Form>
   );
