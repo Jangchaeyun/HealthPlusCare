@@ -3,13 +3,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import CustomFormField from "../CustomFormField";
 import SubmitButton from "../SubmitButton";
 import { useState } from "react";
 import { UserFormValidation } from "@/lib/validation";
 import { useRouter } from "next/navigation";
+import { createUser } from "@/lib/actions/patient.actions";
 
 export enum FormFieldType {
   INPUT = "input",
@@ -33,7 +33,7 @@ const PatientForm = () => {
     },
   });
 
-  function onSubmit({
+  async function onSubmit({
     name,
     email,
     phone,
@@ -41,12 +41,14 @@ const PatientForm = () => {
     setIsLoading(true);
 
     try {
-      // const userData = { name, email, phone };
-      // const user = await createUser(userData);
-      // if (user) router.push(`/patients/${user.$id}/register`);
+      const userData = { name, email, phone };
+      const user = await createUser(userData);
+      if (user) router.push(`/patients/${user.$id}/register`);
     } catch (error) {
       console.log(error);
     }
+
+    setIsLoading(false);
   }
   return (
     <Form {...form}>
@@ -82,8 +84,6 @@ const PatientForm = () => {
           name="phone"
           label="핸드폰"
           placeholder="(010) 1234-5678"
-          iconSrc="/assets/icons/email.svg"
-          iconAlt="email"
         />
         <SubmitButton isLoading={isLoading}>시작하기</SubmitButton>
       </form>
