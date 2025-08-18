@@ -65,7 +65,7 @@ const RegisterForm = ({ user }: { user: User }) => {
       // @ts-ignore
       const patient = await registerPatient(patientData);
 
-      if (patient) router.push(`patients/${user.$id}/new-appointmant`);
+      if (patient) router.push(`/patients/${user.$id}/new-appointmant`);
     } catch (error) {
       console.log(error);
     }
