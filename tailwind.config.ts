@@ -87,7 +87,7 @@ const config = {
         },
       },
       fontFamily: {
-        sans: ["Ownglyph_meetme-Rg", ...fontFamily.sans],
+        sans: ["IM_Hyemin-Bold", ...fontFamily.sans],
       },
       backgroundImage: {
         appointments: "url('/assets/images/appointments-bg.png')",
