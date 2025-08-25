@@ -14,34 +14,48 @@ import { Appointment } from "@/types/appwrite.types";
 import { SelectItem } from "../ui/select";
 import { Doctors } from "@/constants";
 import Image from "next/image";
-import { createAppointment } from "@/lib/actions/appointment.actions";
+import {
+  createAppointment,
+  updateAppointment,
+} from "@/lib/actions/appointment.actions";
 
 const AppointmentForm = ({
   userId,
   patientId,
   type,
+  appointment,
+  setOpen,
 }: {
   userId: string;
   patientId: string;
   type: "create" | "cancel" | "schedule";
+  appointment?: Appointment;
+  setOpen: (open: boolean) => void;
 }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   const AppointmentFormValidation = getAppointmentSchema(type);
 
+  console.log(appointment);
+
   const form = useForm<z.infer<typeof AppointmentFormValidation>>({
     resolver: zodResolver(AppointmentFormValidation),
     defaultValues: {
-      primaryPhysician: "",
-      schedule: new Date(),
-      reason: "",
-      note: "",
-      cancellationReason: "",
+      primaryPhysician: appointment ? appointment?.primaryPhysician : "",
+      schedule: appointment
+        ? new Date(appointment?.schedule!)
+        : new Date(Date.now()),
+      reason: appointment ? appointment.reason : "",
+      note: appointment?.note || "",
+      cancellationReason: appointment?.cancellationReason || "",
     },
   });
 
+  console.log({ userId, patientId, type, appointment });
+
   async function onSubmit(values: z.infer<typeof AppointmentFormValidation>) {
+    console.log("IM SUBMITTING", { type });
     setIsLoading(true);
 
     let status;
@@ -57,7 +71,7 @@ const AppointmentForm = ({
         break;
     }
 
-    console.log("BEFORE THE TYPE", type);
+    console.log({ type });
 
     try {
       if (type === "create" && patientId) {
@@ -83,6 +97,26 @@ const AppointmentForm = ({
             `/patients/${userId}/new-appointmant/success?appointmentId=${appointment.$id}`
           );
         }
+      } else {
+        console.log("Updating appointment");
+        const appointmentToUpdate = {
+          userId,
+          appointmentId: appointment?.$id!,
+          appointment: {
+            primaryPhysician: values?.primaryPhysician,
+            schedule: new Date(values?.schedule),
+            status: status as Status,
+            cancellationReason: values?.cancellationReason,
+          },
+          type,
+        };
+
+        const updatedAppointment = await updateAppointment(appointmentToUpdate);
+
+        if (updatedAppointment) {
+          setOpen && setOpen(false);
+          form.reset();
+        }
       }
     } catch (error) {
       console.log(error);
@@ -107,10 +141,12 @@ const AppointmentForm = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 flex-1">
-        <section className="mb-12 space-t-4">
-          <h1 className="header">새로운 예약</h1>
-          <p className="text-dark-700">10초 안에 새로운 예약을 요청하세요</p>
-        </section>
+        {type === "create" && (
+          <section className="mb-12 space-t-4">
+            <h1 className="header">새로운 예약</h1>
+            <p className="text-dark-700">10초 안에 새로운 예약을 요청하세요</p>
+          </section>
+        )}
 
         {type !== "cancel" && (
           <>
