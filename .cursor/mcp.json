@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "Sentry": {
+      "url": "https://mcp.sentry.dev/mcp/cherry-b9/javascript-nextjs"
+    }
+  }
+}
