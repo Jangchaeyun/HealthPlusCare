@@ -5,8 +5,9 @@ import {
   APPOINTMENT_COLLECTION_ID,
   DATABASE_ID,
   databases,
+  messaging,
 } from "../appwrite.config";
-import { parseStringify } from "../utils";
+import { formatDateTime, parseStringify } from "../utils";
 import { Appointment } from "@/types/appwrite.types";
 import { revalidatePath } from "next/cache";
 
@@ -95,14 +96,42 @@ export const updateAppointment = async ({
       appointment
     );
 
-    if (!updateAppointment) {
+    if (!updatedAppointment) {
       throw new Error("Appointment npt found");
     }
 
-    // TODO SMS notification
+    const smsMessage = `
+    안녕하세요. 헬스플러스케어입니다.
+    ${
+      type === "schedule"
+        ? `귀하의 예약은 ${appointment.primaryPhysician} 의사 선생님께 ${
+            formatDateTime(appointment.schedule!).dateTime
+          }에 예약되었습니다.`
+        : `귀하의 예약이 취소되었음을 알려드리게 되어 유감입니다. 취소 이유: ${appointment.cancellationReason}`
+    }`;
+
+    // 1) 로그로 먼저 확인
+    console.log("📨 SMS message:", smsMessage);
+
+    await sendSMSNotificaation(userId, smsMessage);
 
     revalidatePath("/admin");
     return parseStringify(updatedAppointment);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const sendSMSNotificaation = async (userId: string, content: string) => {
+  try {
+    const message = await messaging.createSms(
+      ID.unique(),
+      content,
+      [],
+      [userId]
+    );
+
+    return parseStringify(message);
   } catch (error) {
     console.log(error);
   }
